@@ -12,27 +12,64 @@ namespace Tournament.Data.Data
     {
         public static ICollection<TournamentDetails> GenerateTournamentDetails()
         {
-            var tournamentDetails = new TournamentDetails
+            var tournamentDetails = new List<TournamentDetails>
             {
-                Title = "Swedish Open",
-                StartDate = new DateTime(2025, 07, 12),
-                Games = new List<Game>
+                
+                new TournamentDetails
                 {
-                    new Game 
+                    Title = "Swedish Open Singles",
+                    StartDate = new DateTime(2025, 07, 12),
+                    Games = new List<Game>
                     {
-                        Title = "Semi Final 1",
-                        Time = new DateTime(2025,07,12,15,0,0),
-                    },
-                    new Game
+                        new Game
+                        {
+                            Title = "Semi Final 1",
+                            Time = new DateTime(2025,07,12,15,0,0),
+                        },
+                        new Game
+                        {
+                            Title = "Semi Final 2",
+                            Time = new DateTime(2025,07,13,15,0,0),
+                        },
+                        new Game
+                        {
+                            Title = "Final",
+                            Time = new DateTime(2025,07,15,15,0,0)
+                        }
+
+                    }
+
+                },
+                new TournamentDetails
+                {
+                    Title = "BNP Paribas Nordic Open Singles",
+                    StartDate = new DateTime(2025, 07, 12),
+                    Games = new List<Game>
                     {
-                        Title = "Semi Final 2",
-                        Time = new DateTime(2025,07,13,15,0,0),
+                        new Game
+                        {
+                            Title = "Semi Final 1",
+                            Time = new DateTime(2025,07,12,15,0,0),
+                        },
+                        new Game
+                        {
+                            Title = "Semi Final 2",
+                            Time = new DateTime(2025,07,13,15,0,0),
+                        },
+                        new Game
+                        {
+                            Title = "Final",
+                            Time = new DateTime(2025,10,19,15,0,0)
+                        }
+
                     }
 
                 }
+                
+
             };
 
-            return new List<TournamentDetails> {tournamentDetails};
+            return tournamentDetails;
         }
     }
 }
