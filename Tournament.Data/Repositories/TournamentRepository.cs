@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
 using Tournament.Core.Entities;
@@ -12,40 +13,34 @@ namespace Tournament.Data.Repositories
 {
     public class TournamentRepository : ITournamentRepository
     {
-        private TournamentApiContext _context { get;}
+        private TournamentApiContext Context { get;}
         public TournamentRepository(TournamentApiContext context)
         {
-            _context = context;
+            Context = context;
         }
-
-        public void Add(TournamentDetails tournament)
+        public async Task<IEnumerable<TournamentDetails>> GetAllAsync()
         {
-            _context.TournamentDetails.Add(tournament);
+            return await Context.TournamentDetails.ToListAsync();
         }
-
+        public async Task<TournamentDetails?> GetAsync(int id)
+        {
+            return await Context.TournamentDetails.FirstOrDefaultAsync(t => t.Id.Equals(id));
+        }
         public async Task<bool> AnyAsync(int id)
         {
-            return await _context.TournamentDetails.AnyAsync(t => t.Id == id);
+            return await Context.TournamentDetails.AnyAsync(t => t.Id.Equals(id));
         }
-
-        public Task<IEnumerable<TournamentDetails>> GetAllAsync()
+        public void Add(TournamentDetails tournament)
         {
-            return _context.TournamentDetails.;
+            Context.TournamentDetails.Add(tournament);
         }
-
-        public Task<TournamentDetails> GetAsync(int id)
-        {
-            throw new NotImplementedException();
-        }
-
         public void Remove(TournamentDetails tournament)
         {
-            throw new NotImplementedException();
+            Context.TournamentDetails.Remove(tournament);
         }
-
         public void Update(TournamentDetails tournament)
         {
-            throw new NotImplementedException();
+            Context.TournamentDetails.Update(tournament);
         }
     }
 }
