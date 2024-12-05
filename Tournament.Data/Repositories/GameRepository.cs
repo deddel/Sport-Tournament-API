@@ -28,18 +28,20 @@ namespace Tournament.Data.Repositories
             return games;
         }
 
-        public async Task<Game?> GetAsync(int TournamentDetailsId, int gameId)
+        public async Task<Game?> GetAsync(int tournamentDetailsId, int gameId)
         {
             var game = await Context.Games
-                .Where(g => g.TournamentDetailsId.Equals(TournamentDetailsId) && 
+                .Where(g => g.TournamentDetailsId.Equals(tournamentDetailsId) && 
                 g.Id.Equals(gameId))
                 .FirstOrDefaultAsync();
             
             return game;
         }
-        public Task<bool> AnyAsync(int TournamentDetailsId, int gameId)
+        public async Task<bool> AnyAsync(int tournamentDetailsId, int gameId)
         {
-            throw new NotImplementedException();
+            return await Context.Games
+                .AnyAsync(g => g.TournamentDetailsId.Equals(tournamentDetailsId) &&
+                g.Id.Equals(gameId));
         }
         public void Add(Game game)
         {
@@ -47,12 +49,12 @@ namespace Tournament.Data.Repositories
         }
         public void Remove(Game game)
         {
-            throw new NotImplementedException();
+            Context.Games.Remove(game);
         }
 
         public void Update(Game game)
         {
-            throw new NotImplementedException();
+            Context.Games.Update(game);
         }
     }
 }
