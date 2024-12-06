@@ -16,6 +16,9 @@ namespace Tournament.Api
                 options.UseSqlServer(builder.Configuration.GetConnectionString("TournamentApiContext") ?? throw new InvalidOperationException("Connection string 'TournamentApiContext' not found.")));
 
             // Add services to the container.
+            builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
+            builder.Services.AddScoped<IGameRepository, GameRepository>();
+            builder.Services.AddScoped<IUoW, UoW>();
 
             builder.Services.AddControllers(opt => opt.ReturnHttpNotAcceptable = true)
                 .AddNewtonsoftJson(options =>
@@ -28,8 +31,6 @@ namespace Tournament.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            //Add services
-            builder.Services.AddScoped<IUoW, UoW>();
 
             var app = builder.Build();
 

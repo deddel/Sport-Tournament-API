@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tournament.Data.Data;
 using Tournament.Core.Entities;
+using Tournament.Core.Repositories;
 
 namespace Tournament.Api.Controllers
 {
@@ -14,99 +15,97 @@ namespace Tournament.Api.Controllers
     [ApiController]
     public class TournamentDetailsController : ControllerBase
     {
-        private readonly TournamentApiContext _context;
+        //private readonly TournamentApiContext _context;
+        private readonly IUoW _uow;
 
-        public TournamentDetailsController(TournamentApiContext context)
+        public TournamentDetailsController(IUoW uow)
         {
-            _context = context;
+            _uow = uow;
         }
 
         // GET: api/TournamentDetails
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TournamentDetails>>> GetTournamentDetails()
         {
-            return await _context.TournamentDetails.ToListAsync();
+            var tournaments = await _uow.TournamentRepository.GetAllAsync();
+            return Ok(tournaments);
         }
 
         // GET: api/TournamentDetails/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TournamentDetails>> GetTournamentDetails(int id)
         {
-            //var tournamentDetails = await _context.TournamentDetails.FindAsync(id);
-
-            var tournamentDetails = await  _context.TournamentDetails
-                .Include(t => t.Games)
-                .FirstOrDefaultAsync(t => t.Id.Equals(id));
+            var tournamentDetails = await _uow.TournamentRepository.GetAsync(id);
 
             if (tournamentDetails == null)
             {
                 return NotFound();
             }
 
-            return tournamentDetails;
+            return Ok(tournamentDetails);
         }
 
-        // PUT: api/TournamentDetails/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTournamentDetails(int id, TournamentDetails tournamentDetails)
-        {
-            if (id != tournamentDetails.Id)
-            {
-                return BadRequest();
-            }
+        //// PUT: api/TournamentDetails/5
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> PutTournamentDetails(int id, TournamentDetails tournamentDetails)
+        //{
+        //    if (id != tournamentDetails.Id)
+        //    {
+        //        return BadRequest();
+        //    }
 
-            _context.Entry(tournamentDetails).State = EntityState.Modified;
+        //    _context.Entry(tournamentDetails).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TournamentDetailsExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+        //    try
+        //    {
+        //        await _context.SaveChangesAsync();
+        //    }
+        //    catch (DbUpdateConcurrencyException)
+        //    {
+        //        if (!TournamentDetailsExists(id))
+        //        {
+        //            return NotFound();
+        //        }
+        //        else
+        //        {
+        //            throw;
+        //        }
+        //    }
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
-        // POST: api/TournamentDetails
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<TournamentDetails>> PostTournamentDetails(TournamentDetails tournamentDetails)
-        {
-            _context.TournamentDetails.Add(tournamentDetails);
-            await _context.SaveChangesAsync();
+        //// POST: api/TournamentDetails
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPost]
+        //public async Task<ActionResult<TournamentDetails>> PostTournamentDetails(TournamentDetails tournamentDetails)
+        //{
+        //    _context.TournamentDetails.Add(tournamentDetails);
+        //    await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTournamentDetails", new { id = tournamentDetails.Id }, tournamentDetails);
-        }
+        //    return CreatedAtAction("GetTournamentDetails", new { id = tournamentDetails.Id }, tournamentDetails);
+        //}
 
-        // DELETE: api/TournamentDetails/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTournamentDetails(int id)
-        {
-            var tournamentDetails = await _context.TournamentDetails.FindAsync(id);
-            if (tournamentDetails == null)
-            {
-                return NotFound();
-            }
+        //// DELETE: api/TournamentDetails/5
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteTournamentDetails(int id)
+        //{
+        //    var tournamentDetails = await _context.TournamentDetails.FindAsync(id);
+        //    if (tournamentDetails == null)
+        //    {
+        //        return NotFound();
+        //    }
 
-            _context.TournamentDetails.Remove(tournamentDetails);
-            await _context.SaveChangesAsync();
+        //    _context.TournamentDetails.Remove(tournamentDetails);
+        //    await _context.SaveChangesAsync();
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
-        private bool TournamentDetailsExists(int id)
-        {
-            return _context.TournamentDetails.Any(e => e.Id == id);
-        }
+        //private bool TournamentDetailsExists(int id)
+        //{
+        //    return _context.TournamentDetails.Any(e => e.Id == id);
+        //}
     }
 }
