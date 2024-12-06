@@ -32,7 +32,11 @@ namespace Tournament.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<TournamentDetails>> GetTournamentDetails(int id)
         {
-            var tournamentDetails = await _context.TournamentDetails.FindAsync(id);
+            //var tournamentDetails = await _context.TournamentDetails.FindAsync(id);
+
+            var tournamentDetails = await  _context.TournamentDetails
+                .Include(t => t.Games)
+                .FirstOrDefaultAsync(t => t.Id.Equals(id));
 
             if (tournamentDetails == null)
             {

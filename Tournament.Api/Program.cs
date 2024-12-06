@@ -16,7 +16,10 @@ namespace Tournament.Api
             // Add services to the container.
 
             builder.Services.AddControllers(opt => opt.ReturnHttpNotAcceptable = true)
-                .AddNewtonsoftJson()
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+                })
                 .AddXmlDataContractSerializerFormatters();
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
