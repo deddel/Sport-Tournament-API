@@ -33,11 +33,6 @@ namespace Tournament.Api
                 await app.SeedDataAsync();
             }
 
-            //var test = new TournamentDetails()
-            //{
-
-            //};
-
             app.UseHttpsRedirection();
 
             app.UseAuthorization();

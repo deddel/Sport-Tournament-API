@@ -18,7 +18,7 @@ namespace Tournament.Data.Data
                 new TournamentDetails
                 {
                     Title = "Swedish Open Singles",
-                    StartDate = new DateTime(2025, 07, 12),
+                    StartDate = new DateTime(2025, 07, 09),
                     Games = new List<Game>
                     {
                         new Game
@@ -43,18 +43,18 @@ namespace Tournament.Data.Data
                 new TournamentDetails
                 {
                     Title = "BNP Paribas Nordic Open Singles",
-                    StartDate = new DateTime(2025, 07, 12),
+                    StartDate = new DateTime(2025, 10, 12),
                     Games = new List<Game>
                     {
                         new Game
                         {
                             Title = "Semi Final 1",
-                            Time = new DateTime(2025,07,12,15,0,0),
+                            Time = new DateTime(2025,10,17,15,0,0),
                         },
                         new Game
                         {
                             Title = "Semi Final 2",
-                            Time = new DateTime(2025,07,13,15,0,0),
+                            Time = new DateTime(2025,10,18,15,0,0),
                         },
                         new Game
                         {
