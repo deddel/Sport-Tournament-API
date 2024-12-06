@@ -24,7 +24,9 @@ namespace Tournament.Data.Repositories
         }
         public async Task<TournamentDetails?> GetAsync(int id)
         {
-            return await Context.TournamentDetails.FirstOrDefaultAsync(t => t.Id.Equals(id));
+            return await Context.TournamentDetails
+                .Include(t => t.Games)
+                .FirstOrDefaultAsync(t => t.Id.Equals(id));
         }
         public async Task<bool> AnyAsync(int id)
         {
