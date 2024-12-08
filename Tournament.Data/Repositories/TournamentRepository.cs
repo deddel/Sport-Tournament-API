@@ -42,6 +42,16 @@ namespace Tournament.Data.Repositories
         }
         public void Update(TournamentDetails tournament)
         {
+            // Check if the entity is already being tracked
+            var trackedEntity = Context.TournamentDetails.Local
+                .FirstOrDefault(e => e.Id == tournament.Id);
+
+            if (trackedEntity != null)
+            {
+                // Detach the tracked entity to avoid conflicts
+                Context.Entry(trackedEntity).State = EntityState.Detached;
+            }
+
             Context.TournamentDetails.Update(tournament);
         }
     }

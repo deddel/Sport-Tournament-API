@@ -45,63 +45,60 @@ namespace Tournament.Api.Controllers
             return Ok(tournamentDetails);
         }
 
-        //// PUT: api/TournamentDetails/5
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutTournamentDetails(int id, TournamentDetails tournamentDetails)
-        //{
-        //    if (id != tournamentDetails.Id)
-        //    {
-        //        return BadRequest();
-        //    }
+        // PUT: api/TournamentDetails/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutTournamentDetails(int id, TournamentDetails tournamentDetails)
+        {
+            if (id != tournamentDetails.Id) return BadRequest();
 
-        //    _context.Entry(tournamentDetails).State = EntityState.Modified;
+            var existingTournamentDetails = await _uow.TournamentRepository.GetAsync(id);
 
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!TournamentDetailsExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
+            if (existingTournamentDetails == null) return NotFound();
 
-        //    return NoContent();
-        //}
+            //Update the existingTournament
+            //existingTournamentDetails.Title = tournamentDetails.Title;
+            //existingTournamentDetails.StartDate = tournamentDetails.StartDate;
 
-        //// POST: api/TournamentDetails
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost]
-        //public async Task<ActionResult<TournamentDetails>> PostTournamentDetails(TournamentDetails tournamentDetails)
-        //{
-        //    _context.TournamentDetails.Add(tournamentDetails);
-        //    await _context.SaveChangesAsync();
+            _uow.TournamentRepository.Update(tournamentDetails);
 
-        //    return CreatedAtAction("GetTournamentDetails", new { id = tournamentDetails.Id }, tournamentDetails);
-        //}
+            try
+            {
+                await _uow.CompleteAsync();
+            }
 
-        //// DELETE: api/TournamentDetails/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteTournamentDetails(int id)
-        //{
-        //    var tournamentDetails = await _context.TournamentDetails.FindAsync(id);
-        //    if (tournamentDetails == null)
-        //    {
-        //        return NotFound();
-        //    }
+            catch (Exception ex) 
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
 
-        //    _context.TournamentDetails.Remove(tournamentDetails);
-        //    await _context.SaveChangesAsync();
+            return NoContent();
 
-        //    return NoContent();
-        //}
+        }
+
+        // POST: api/TournamentDetails
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<IActionResult> PostTournamentDetails(TournamentDetails tournamentDetails)
+        {
+            _uow.TournamentRepository.Add(tournamentDetails);
+            await _uow.CompleteAsync();
+
+            return CreatedAtAction(nameof(GetTournamentDetails), new { id = tournamentDetails.Id }, tournamentDetails);
+        }
+
+        // DELETE: api/TournamentDetails/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteTournamentDetails(int id)
+        {
+            var tournamentDetails = await _uow.TournamentRepository.GetAsync(id);
+            if (tournamentDetails == null) return NotFound();
+
+            _uow.TournamentRepository.Remove(tournamentDetails);
+            await _uow.CompleteAsync();
+
+            return NoContent();
+        }
 
         //private bool TournamentDetailsExists(int id)
         //{
