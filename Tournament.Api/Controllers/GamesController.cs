@@ -59,6 +59,19 @@ namespace Tournament.Api.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutGame(int tournamentId ,int id, Game game)
         {
+            // Check if the game object is being properly bound
+            if (game == null)
+            {
+                return BadRequest("Game object is null.");
+            }
+
+            // Check if model is valid
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest($"Model is invalid: {errors}");
+            }
+
             //Check if the tournamnet exists
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
             if (!tournamentExist) return NotFound("The tournament does not exist");
@@ -68,8 +81,8 @@ namespace Tournament.Api.Controllers
             if (!gameExist) return NotFound("The game does not exist");
 
             //Check that game ID match
-            //Todo game.Id=0
-            if (id != game.Id) return BadRequest();
+            //Todo game.Id=0. tournamentDetailsID=0
+            //if (id != game.Id) return BadRequest();
             
             _uow.GameRepository.Update(game);
 
