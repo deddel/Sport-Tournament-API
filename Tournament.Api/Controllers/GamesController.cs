@@ -23,9 +23,9 @@ namespace Tournament.Api.Controllers
             _uow = uow;
         }
 
-        // GET: api/Games
+        // GET: api/tournamentdetails/5/games
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Game>>> GetGame(int tournamentId)
+        public async Task<ActionResult<IEnumerable<Game>>> GetGames(int tournamentId)
         {
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
 
@@ -36,77 +36,89 @@ namespace Tournament.Api.Controllers
             return Ok(games);
         }
 
-        //// GET: api/Games/5
-        //[HttpGet("{id}")]
-        //public async Task<ActionResult<Game>> GetGame(int id)
-        //{
-        //    var game = await _context.Game.FindAsync(id);
+        // GET: api/tournamentdetails/5/games/10
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Game>> GetGame(int tournamentId ,int id)
+        {
+            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
 
-        //    if (game == null)
-        //    {
-        //        return NotFound();
-        //    }
+            if (!tournamentExist) return NotFound("The tournament does not exist");
 
-        //    return game;
-        //}
+            var game = await _uow.GameRepository.GetAsync(tournamentId, id);
 
-        //// PUT: api/Games/5
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPut("{id}")]
-        //public async Task<IActionResult> PutGame(int id, Game game)
-        //{
-        //    if (id != game.Id)
-        //    {
-        //        return BadRequest();
-        //    }
+            if (game == null)
+            {
+                return NotFound();
+            }
 
-        //    _context.Entry(game).State = EntityState.Modified;
+            return Ok(game);
+        }
 
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!GameExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
+        // PUT: api/tournamentdetails/5/games/10
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutGame(int tournamentId ,int id, Game game)
+        {
+            //Check if the tournamnet exists
+            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
+            if (!tournamentExist) return NotFound("The tournament does not exist");
 
-        //    return NoContent();
-        //}
+            //Check if the game exists
+            var gameExist = await _uow.GameRepository.AnyAsync(tournamentId, id);
+            if (!gameExist) return NotFound("The game does not exist");
 
-        //// POST: api/Games
-        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        //[HttpPost]
-        //public async Task<ActionResult<Game>> PostGame(Game game)
-        //{
-        //    _context.Game.Add(game);
-        //    await _context.SaveChangesAsync();
+            //Check that game ID match
+            if (id != game.Id) return BadRequest();
+            
+            _uow.GameRepository.Update(game);
 
-        //    return CreatedAtAction("GetGame", new { id = game.Id }, game);
-        //}
+            try
+            {
+                await _uow.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
 
-        //// DELETE: api/Games/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteGame(int id)
-        //{
-        //    var game = await _context.Game.FindAsync(id);
-        //    if (game == null)
-        //    {
-        //        return NotFound();
-        //    }
+            return Ok(game);
+        }
 
-        //    _context.Game.Remove(game);
-        //    await _context.SaveChangesAsync();
+        // POST: api/tournamentdetails/5/games
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<Game>> PostGame(int tournamentId, Game game)
+        {
+            //Check if the tournamnet exists
+            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
+            if (!tournamentExist) return NotFound("The tournament does not exist");
 
-        //    return NoContent();
-        //}
+            //Associate the game with the tournament
+            game.TournamentDetailsId = tournamentId;
+
+            //Add the game to the database
+            _uow.GameRepository.Add(game);
+            await _uow.CompleteAsync();
+
+            return CreatedAtAction(nameof(GetGame), new { id = game.Id }, game);
+        }
+
+        // DELETE: api/TournamentDetails/5/Games/10
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteGame(int tournamentId, int id)
+        {
+            var tournamentExists = await _uow.TournamentRepository.AnyAsync(tournamentId);
+
+            if (!tournamentExists) return NotFound();
+
+            var game = await _uow.GameRepository.GetAsync(tournamentId, id);
+            if (game == null) return NotFound();
+
+            _uow.GameRepository.Remove(game);
+            await _uow.CompleteAsync();
+
+            return NoContent();
+        }
 
         //private bool GameExists(int id)
         //{
