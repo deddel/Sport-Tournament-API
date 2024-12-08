@@ -68,6 +68,7 @@ namespace Tournament.Api.Controllers
             if (!gameExist) return NotFound("The game does not exist");
 
             //Check that game ID match
+            //Todo game.Id=0
             if (id != game.Id) return BadRequest();
             
             _uow.GameRepository.Update(game);
@@ -89,7 +90,20 @@ namespace Tournament.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Game>> PostGame(int tournamentId, Game game)
         {
-            //Check if the tournamnet exists
+            // Check if the game object is being properly bound
+            if (game == null)
+            {
+                return BadRequest("Game object is null.");
+            }
+
+            // Check if model is valid
+            if (!ModelState.IsValid)
+            {
+                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest($"Model is invalid: {errors}");
+            }
+
+            //Check if the tournament exist
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
             if (!tournamentExist) return NotFound("The tournament does not exist");
 
@@ -100,7 +114,8 @@ namespace Tournament.Api.Controllers
             _uow.GameRepository.Add(game);
             await _uow.CompleteAsync();
 
-            return CreatedAtAction(nameof(GetGame), new { id = game.Id }, game);
+            //return CreatedAtAction(nameof(GetGame), new { id = game.Id }, game);
+            return StatusCode(201, game);
         }
 
         // DELETE: api/TournamentDetails/5/Games/10

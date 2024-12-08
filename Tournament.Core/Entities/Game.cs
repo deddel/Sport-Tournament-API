@@ -14,6 +14,6 @@ namespace Tournament.Core.Entities
         //FK
         public int TournamentDetailsId { get; set; }
         //NP
-        public TournamentDetails TournamentDetails { get; set; } = default!;
+        public TournamentDetails? TournamentDetails { get; set; }// = default!;
     }
 }
