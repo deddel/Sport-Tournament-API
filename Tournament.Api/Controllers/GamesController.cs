@@ -127,8 +127,8 @@ namespace Tournament.Api.Controllers
             _uow.GameRepository.Add(game);
             await _uow.CompleteAsync();
 
-            //return CreatedAtAction(nameof(GetGame), new { id = game.Id }, game);
-            return StatusCode(201, game);
+            return CreatedAtAction(nameof(GetGame), new { tournamentId, id = game.Id }, game);
+            //return StatusCode(201, game);
         }
 
         // DELETE: api/TournamentDetails/5/Games/10
