@@ -72,7 +72,7 @@ namespace Tournament.Api.Controllers
                 return BadRequest($"Model is invalid: {errors}");
             }
 
-            //Check if the tournamnet exists
+            //Check if the tournament exist
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
             if (!tournamentExist) return NotFound("The tournament does not exist");
 
