@@ -63,10 +63,10 @@ namespace Tournament.Api.Controllers
         // PUT: api/tournamentdetails/5/games/10
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGame(int tournamentId ,int id, Game game)
+        public async Task<IActionResult> PutGame(int tournamentId ,int id, GameUpdateDto dto)
         {
             // Check if the game object is being properly bound
-            if (game == null)
+            if (dto == null)
             {
                 return BadRequest("Game object is null.");
             }
@@ -86,11 +86,17 @@ namespace Tournament.Api.Controllers
             var gameExist = await _uow.GameRepository.AnyAsync(tournamentId, id);
             if (!gameExist) return NotFound("The game does not exist");
 
+            var existingGame = await _uow.GameRepository.GetAsync(tournamentId, id);
+
+            _mapper.Map(dto, existingGame);
+
+
+
             //Check that game ID match
             //Todo game.Id=0. tournamentDetailsID=0
             //if (id != game.Id) return BadRequest();
             
-            _uow.GameRepository.Update(game);
+            //_uow.GameRepository.Update(game);
 
             try
             {
@@ -101,7 +107,7 @@ namespace Tournament.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
-            return Ok(game);
+            return Ok(_mapper.Map<GameDto>(existingGame));
         }
 
         // POST: api/tournamentdetails/5/games

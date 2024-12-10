@@ -27,7 +27,7 @@ namespace Tournament.Api.Controllers
             _mapper = mapper;
         }
 
-        // GET: api/TournamentDetails
+        // GET: api/tournamentdetails
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournament()
         {
@@ -37,7 +37,7 @@ namespace Tournament.Api.Controllers
             return Ok(tournamentDtos);
         }
 
-        // GET: api/TournamentDetails/5
+        // GET: api/tournamentdetails/5
         [HttpGet("{id}")]
         public async Task<ActionResult<TournamentDto>> GetTournament(int id)
         {
@@ -53,7 +53,7 @@ namespace Tournament.Api.Controllers
             return Ok(tournamentDto);
         }
 
-        // PUT: api/TournamentDetails/5
+        // PUT: api/tournamentdetails/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTournament(int id, TournamentUpdateDto dto)
