@@ -29,7 +29,7 @@ namespace Tournament.Api.Controllers
 
         // GET: api/TournamentDetails
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails()
+        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournament()
         {
             var tournaments = await _uow.TournamentRepository.GetAllAsync();
             var tournamentDtos = _mapper.Map<IEnumerable<TournamentDto>>(tournaments);
@@ -39,7 +39,7 @@ namespace Tournament.Api.Controllers
 
         // GET: api/TournamentDetails/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TournamentDto>> GetTournamentDetails(int id)
+        public async Task<ActionResult<TournamentDto>> GetTournament(int id)
         {
             var tournament = await _uow.TournamentRepository.GetAsync(id);
 
@@ -56,7 +56,7 @@ namespace Tournament.Api.Controllers
         // PUT: api/TournamentDetails/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTournamentDetails(int id, TournamentUpdateDto dto)
+        public async Task<IActionResult> PutTournament(int id, TournamentUpdateDto dto)
         {
             if (id != dto.Id) return BadRequest();
 
@@ -83,22 +83,33 @@ namespace Tournament.Api.Controllers
         // POST: api/TournamentDetails
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<IActionResult> PostTournamentDetails(TournamentDetails tournamentDetails)
+        public async Task<IActionResult> PostTournament(TournamentCreateDto dto)
         {
-            _uow.TournamentRepository.Add(tournamentDetails);
-            await _uow.CompleteAsync();
+            var tournament = _mapper.Map<TournamentDetails>(dto);
+            _uow.TournamentRepository.Add(tournament);
 
-            return CreatedAtAction(nameof(GetTournamentDetails), new { id = tournamentDetails.Id }, tournamentDetails);
+            try
+            {
+                await _uow.CompleteAsync();
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+
+            var createdTournament = _mapper.Map<TournamentDto>(tournament);
+            return CreatedAtAction(nameof(GetTournament), new { id = createdTournament.Id }, createdTournament);
         }
 
         // DELETE: api/TournamentDetails/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTournamentDetails(int id)
+        public async Task<IActionResult> DeleteTournament(int id)
         {
-            var tournamentDetails = await _uow.TournamentRepository.GetAsync(id);
-            if (tournamentDetails == null) return NotFound();
+            var tournament = await _uow.TournamentRepository.GetAsync(id);
+            if (tournament == null) return NotFound();
 
-            _uow.TournamentRepository.Remove(tournamentDetails);
+            _uow.TournamentRepository.Remove(tournament);
             await _uow.CompleteAsync();
 
             return NoContent();
