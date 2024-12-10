@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Tournament.Data.Data;
 using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
+using AutoMapper;
+using Tournament.Core.Dto;
 
 namespace Tournament.Api.Controllers
 {
@@ -17,32 +19,38 @@ namespace Tournament.Api.Controllers
     {
         //private readonly TournamentApiContext _context;
         private readonly IUoW _uow;
+        private readonly IMapper _mapper;
 
-        public TournamentDetailsController(IUoW uow)
+        public TournamentDetailsController(IMapper mapper,IUoW uow)
         {
             _uow = uow;
+            _mapper = mapper;
         }
 
         // GET: api/TournamentDetails
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TournamentDetails>>> GetTournamentDetails()
+        public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournamentDetails()
         {
             var tournaments = await _uow.TournamentRepository.GetAllAsync();
-            return Ok(tournaments);
+            var tournamentDtos = _mapper.Map<IEnumerable<TournamentDto>>(tournaments);
+
+            return Ok(tournamentDtos);
         }
 
         // GET: api/TournamentDetails/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TournamentDetails>> GetTournamentDetails(int id)
+        public async Task<ActionResult<TournamentDto>> GetTournamentDetails(int id)
         {
-            var tournamentDetails = await _uow.TournamentRepository.GetAsync(id);
+            var tournament = await _uow.TournamentRepository.GetAsync(id);
 
-            if (tournamentDetails == null)
+            if (tournament == null)
             {
                 return NotFound();
             }
 
-            return Ok(tournamentDetails);
+            var tournamentDto = _mapper.Map<TournamentDto>(tournament);
+
+            return Ok(tournamentDto);
         }
 
         // PUT: api/TournamentDetails/5
