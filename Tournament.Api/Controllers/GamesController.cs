@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Tournament.Data.Data;
 using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
+using AutoMapper;
+using Tournament.Core.Dto;
 
 namespace Tournament.Api.Controllers
 {
@@ -15,30 +17,32 @@ namespace Tournament.Api.Controllers
     [ApiController]
     public class GamesController : ControllerBase
     {
-        //private readonly TournamentApiContext _context;
+        private readonly IMapper _mapper;
         private readonly IUoW _uow;
 
-        public GamesController(IUoW uow)
+        public GamesController(IMapper mapper, IUoW uow)
         {
+            _mapper = mapper;
             _uow = uow;
         }
 
         // GET: api/tournamentdetails/5/games
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Game>>> GetGames(int tournamentId)
+        public async Task<ActionResult<IEnumerable<GameDto>>> GetGames(int tournamentId)
         {
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
 
             if (!tournamentExist) return NotFound("The tournament does not exist");
 
             var games = await _uow.GameRepository.GetAllAsync(tournamentId);
+            var gameDtos = _mapper.Map<IEnumerable<GameDto>>(games);
 
-            return Ok(games);
+            return Ok(gameDtos);
         }
 
         // GET: api/tournamentdetails/5/games/10
         [HttpGet("{id}")]
-        public async Task<ActionResult<Game>> GetGame(int tournamentId ,int id)
+        public async Task<ActionResult<GameDto>> GetGame(int tournamentId ,int id)
         {
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
 
@@ -51,7 +55,9 @@ namespace Tournament.Api.Controllers
                 return NotFound();
             }
 
-            return Ok(game);
+            var gameDto = _mapper.Map<GameDto>(game);
+
+            return Ok(gameDto);
         }
 
         // PUT: api/tournamentdetails/5/games/10
