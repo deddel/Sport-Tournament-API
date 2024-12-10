@@ -56,19 +56,15 @@ namespace Tournament.Api.Controllers
         // PUT: api/TournamentDetails/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTournamentDetails(int id, TournamentDetails tournamentDetails)
+        public async Task<IActionResult> PutTournamentDetails(int id, TournamentUpdateDto dto)
         {
-            if (id != tournamentDetails.Id) return BadRequest();
+            if (id != dto.Id) return BadRequest();
 
-            var existingTournamentDetails = await _uow.TournamentRepository.GetAsync(id);
+            var existingTournament = await _uow.TournamentRepository.GetAsync(id);
 
-            if (existingTournamentDetails == null) return NotFound();
+            if (existingTournament == null) return NotFound();
 
-            //Update the existingTournament
-            //existingTournamentDetails.Title = tournamentDetails.Title;
-            //existingTournamentDetails.StartDate = tournamentDetails.StartDate;
-
-            _uow.TournamentRepository.Update(tournamentDetails);
+            _mapper.Map(dto, existingTournament);
 
             try
             {
@@ -80,7 +76,7 @@ namespace Tournament.Api.Controllers
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<TournamentDto>(existingTournament));
 
         }
 

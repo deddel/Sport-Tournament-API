@@ -15,6 +15,9 @@ namespace Tournament.Data.Data
         {
             CreateMap<TournamentDetails, TournamentDto>()
                 .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.StartDate.AddMonths(3)));
+            CreateMap<TournamentCreateDto, TournamentDetails>();
+            CreateMap<TournamentUpdateDto, TournamentDetails>();
+            
             CreateMap<Game, GameDto>();
                 
 
