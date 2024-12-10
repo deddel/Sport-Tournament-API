@@ -11,6 +11,13 @@ namespace Tournament.Core.Dto
         public int Id { get; init; }
         public string? Title { get; init; }
         public DateTime StartDate { get; init; }
-        public DateTime EndDate => StartDate.AddMonths(3);
+        public DateTime EndDate 
+        { 
+            get 
+            {
+                return StartDate.AddMonths(3);
+            }
+        }
+        public ICollection<GameDto>? Games { get; init; }
     }
 }
