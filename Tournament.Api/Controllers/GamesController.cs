@@ -110,7 +110,7 @@ namespace Tournament.Api.Controllers
         // POST: api/tournamentdetails/5/games
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Game>> PostGame(int tournamentId, GameUpdateDto dto)
+        public async Task<ActionResult<Game>> PostGame(int tournamentId, GameCreateDto dto)
         {
 
             // Check if model is valid
