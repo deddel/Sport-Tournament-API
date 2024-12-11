@@ -61,6 +61,23 @@ namespace Tournament.Api.Controllers
             return Ok(gameDto);
         }
 
+        // GET: api/tournamentdetails/{tournamentId}/games/search
+        [HttpGet("search")]
+        public async Task<ActionResult<IEnumerable<GameDto>>> GetGame(string searchString)
+        {
+            if (string.IsNullOrEmpty(searchString))
+            {
+                // Return an empty list if the search string is empty
+                return Ok(Enumerable.Empty<GameDto>());  
+            }
+
+            var games = await _uow.GameRepository
+                .FindGamesByTitle(searchString);
+            var gameDtos = _mapper.Map<IEnumerable<GameDto>>(games);
+
+            return Ok(gameDtos);
+        }
+
         // PUT: api/tournamentdetails/5/games/10
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

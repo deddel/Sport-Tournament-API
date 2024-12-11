@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,6 +28,20 @@ namespace Tournament.Data.Repositories
 
             return games;
         }
+        public async Task<IEnumerable<Game>> FindGamesByTitle(string searchString)
+        {
+            if (string.IsNullOrEmpty(searchString))
+            {
+                // Return an empty collection if the search string is null or empty.
+                return Enumerable.Empty<Game>();  
+            }
+
+            var games = await Context.Games
+                .Where(g => g.Title != null && g.Title.Equals(searchString))
+                .ToListAsync();
+            return games;
+        }
+
 
         public async Task<Game?> GetAsync(int tournamentDetailsId, int gameId)
         {
