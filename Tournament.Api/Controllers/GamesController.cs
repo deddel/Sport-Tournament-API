@@ -10,6 +10,7 @@ using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Tournament.Api.Controllers
 {
@@ -42,7 +43,7 @@ namespace Tournament.Api.Controllers
 
         // GET: api/tournamentdetails/5/games/10
         [HttpGet("{id}")]
-        public async Task<ActionResult<GameDto>> GetGame(int tournamentId ,int id)
+        public async Task<ActionResult<GameDto>> GetGame(int tournamentId, int id)
         {
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
 
@@ -63,7 +64,7 @@ namespace Tournament.Api.Controllers
         // PUT: api/tournamentdetails/5/games/10
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGame(int tournamentId ,int id, GameUpdateDto dto)
+        public async Task<IActionResult> PutGame(int tournamentId, int id, GameUpdateDto dto)
         {
             // Check if model is valid
             if (!ModelState.IsValid)
@@ -71,7 +72,7 @@ namespace Tournament.Api.Controllers
                 var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 return BadRequest($"Model is invalid: {errors}");
             }
-            
+
             // Check if the game object is being properly bound
             if (dto == null)
             {
@@ -80,7 +81,7 @@ namespace Tournament.Api.Controllers
 
             //Check that game ID match
             if (id != dto.Id) return BadRequest();
-            
+
             //Check if the tournament exist
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
             if (!tournamentExist) return NotFound("The tournament does not exist");
@@ -92,8 +93,6 @@ namespace Tournament.Api.Controllers
             var existingGame = await _uow.GameRepository.GetAsync(tournamentId, id);
 
             _mapper.Map(dto, existingGame);
-
-            //_uow.GameRepository.Update(game);
 
             try
             {
@@ -138,12 +137,20 @@ namespace Tournament.Api.Controllers
 
             //Add the game to the database
             _uow.GameRepository.Add(createdGame);
-            await _uow.CompleteAsync();
+            try
+            {
+                await _uow.CompleteAsync();
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
 
             return CreatedAtAction(nameof(GetGame), new { tournamentId, id = createdGame.Id }, createdGame);
         }
 
-        // DELETE: api/TournamentDetails/5/Games/10
+        // DELETE: api/tournamentdetails/5/games/10
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGame(int tournamentId, int id)
         {
@@ -157,11 +164,50 @@ namespace Tournament.Api.Controllers
 
             var game = await _uow.GameRepository.GetAsync(tournamentId, id);
             if (game == null) return NotFound();
-            
+
             _uow.GameRepository.Remove(game);
-            await _uow.CompleteAsync();
+            try
+            {
+                await _uow.CompleteAsync();
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
 
             return NoContent();
+        }
+
+        // PATCH: api/tournamentdetails/5/games/10
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchGame(int tournamentId, int id, JsonPatchDocument<GameUpdateDto> patchDocument)
+        {
+            if (patchDocument == null) return BadRequest("No patch document");
+
+            var gameToPatch = await _uow.GameRepository.GetAsync(tournamentId, id);
+            if (gameToPatch == null) return NotFound("Game does not exist");
+
+            var dto = _mapper.Map<GameUpdateDto>(gameToPatch);
+
+            patchDocument.ApplyTo(dto, ModelState);
+            //TryValidateModel(dto);
+
+            if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
+
+            _mapper.Map(dto, gameToPatch);
+
+            try
+            {
+                await _uow.CompleteAsync();
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+
+            return Ok(_mapper.Map<GameDto>(gameToPatch));
         }
     }
 }

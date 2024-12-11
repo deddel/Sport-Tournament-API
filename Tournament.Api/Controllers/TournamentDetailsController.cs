@@ -10,6 +10,7 @@ using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace Tournament.Api.Controllers
 {
@@ -45,7 +46,7 @@ namespace Tournament.Api.Controllers
 
             if (tournament == null)
             {
-                return NotFound();
+                return NotFound("The tournament does not exist");
             }
 
             var tournamentDto = _mapper.Map<TournamentDto>(tournament);
@@ -62,7 +63,7 @@ namespace Tournament.Api.Controllers
 
             var existingTournament = await _uow.TournamentRepository.GetAsync(id);
 
-            if (existingTournament == null) return NotFound();
+            if (existingTournament == null) return NotFound("The tournament does not exist");
 
             _mapper.Map(dto, existingTournament);
 
@@ -80,7 +81,7 @@ namespace Tournament.Api.Controllers
 
         }
 
-        // POST: api/TournamentDetails
+        // POST: api/tournamentdetails
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<IActionResult> PostTournament(TournamentCreateDto dto)
@@ -102,7 +103,7 @@ namespace Tournament.Api.Controllers
             return CreatedAtAction(nameof(GetTournament), new { id = createdTournament.Id }, createdTournament);
         }
 
-        // DELETE: api/TournamentDetails/5
+        // DELETE: api/tournamentdetails/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTournament(int id)
         {
@@ -110,14 +111,50 @@ namespace Tournament.Api.Controllers
             if (tournament == null) return NotFound();
 
             _uow.TournamentRepository.Remove(tournament);
-            await _uow.CompleteAsync();
+            try
+            {
+                await _uow.CompleteAsync();
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
 
             return NoContent();
         }
 
-        //private bool TournamentDetailsExists(int id)
-        //{
-        //    return _context.TournamentDetails.Any(e => e.Id == id);
-        //}
+        // PATCH: api/tournamentdetails/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> PatchTournament(int id, JsonPatchDocument<TournamentUpdateDto> patchDocument)
+        {
+            if (patchDocument == null) return BadRequest("No patch document");
+
+            var tournamentToPatch = await _uow.TournamentRepository.GetAsync(id);
+
+            if (tournamentToPatch == null) return NotFound("Tournament does not exist");
+
+            var dto = _mapper.Map<TournamentUpdateDto>(tournamentToPatch);
+
+            patchDocument.ApplyTo(dto, ModelState);
+            //TryValidateModel(dto);
+
+            if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
+
+            _mapper.Map(dto, tournamentToPatch);
+
+            try
+            {
+                await _uow.CompleteAsync();
+            }
+
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
+
+            return Ok(_mapper.Map<TournamentDto>(tournamentToPatch));
+        }
     }
 }
