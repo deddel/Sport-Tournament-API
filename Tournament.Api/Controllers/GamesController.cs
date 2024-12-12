@@ -208,8 +208,9 @@ namespace Tournament.Api.Controllers
             var dto = _mapper.Map<GameUpdateDto>(gameToPatch);
 
             patchDocument.ApplyTo(dto, ModelState);
-            //TryValidateModel(dto);
 
+            //Validate ModelState for dto after patch
+            TryValidateModel(dto);
             if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
 
             _mapper.Map(dto, gameToPatch);
