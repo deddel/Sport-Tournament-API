@@ -11,6 +11,7 @@ using Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.Extensions.Logging;
 
 namespace Tournament.Api.Controllers
 {
@@ -18,11 +19,13 @@ namespace Tournament.Api.Controllers
     [ApiController]
     public class GamesController : ControllerBase
     {
+        private readonly ILogger<GamesController> _logger;
         private readonly IMapper _mapper;
         private readonly IUoW _uow;
 
-        public GamesController(IMapper mapper, IUoW uow)
+        public GamesController(ILogger<GamesController> logger, IMapper mapper, IUoW uow)
         {
+            _logger = logger;
             _mapper = mapper;
             _uow = uow;
         }
@@ -45,6 +48,17 @@ namespace Tournament.Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<GameDto>> GetGame(int tournamentId, int id)
         {
+            //Test logging
+            //try
+            //{
+            //    throw new Exception("Exception example");
+            //}
+            //catch (Exception ex) 
+            //{
+            //    _logger.LogCritical(ex, "Error");
+            //    return StatusCode(500);
+            //}
+
             var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
 
             if (!tournamentExist) return NotFound("The tournament does not exist");

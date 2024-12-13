@@ -19,13 +19,18 @@ namespace Tournament.Api
             builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
             builder.Services.AddScoped<IGameRepository, GameRepository>();
             builder.Services.AddScoped<IUoW, UoW>();
-
+            builder.Services.AddProblemDetails();
             builder.Services.AddControllers(opt => opt.ReturnHttpNotAcceptable = true)
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 })
                 .AddXmlDataContractSerializerFormatters();
+
+            // Configure logging
+            builder.Logging.ClearProviders(); // Optional: Clears default providers
+            builder.Logging.AddConsole(); // Add Console logging
+            builder.Logging.AddDebug(); // Add Debug logging
 
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -40,6 +45,7 @@ namespace Tournament.Api
                 app.UseSwagger();
                 app.UseSwaggerUI();
                 await app.SeedDataAsync();
+                app.UseDeveloperExceptionPage();
             }
 
             app.UseHttpsRedirection();
