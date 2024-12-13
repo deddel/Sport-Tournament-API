@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Tournament.Data.Data;
+//using Tournament.Data.Data;
 using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
 using AutoMapper;
@@ -13,7 +13,7 @@ using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Logging;
 
-namespace Tournament.Api.Controllers
+namespace Tournament.Presentation.Controllers
 {
     [Route("api/tournamentdetails/{tournamentId}/games")]
     [ApiController]
@@ -82,7 +82,7 @@ namespace Tournament.Api.Controllers
             if (string.IsNullOrEmpty(searchString))
             {
                 // Return an empty list if the search string is empty
-                return Ok(Enumerable.Empty<GameDto>());  
+                return Ok(Enumerable.Empty<GameDto>());
             }
 
             var games = await _uow.GameRepository

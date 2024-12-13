@@ -5,14 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Tournament.Data.Data;
+//using Tournament.Data.Data;
 using Tournament.Core.Entities;
 using Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
 
-namespace Tournament.Api.Controllers
+namespace Tournament.Presentation.Controllers
 {
     [Route("api/TournamentDetails")]
     [ApiController]
@@ -22,7 +22,7 @@ namespace Tournament.Api.Controllers
         private readonly IUoW _uow;
         private readonly IMapper _mapper;
 
-        public TournamentDetailsController(IMapper mapper,IUoW uow)
+        public TournamentDetailsController(IMapper mapper, IUoW uow)
         {
             _uow = uow;
             _mapper = mapper;
@@ -72,7 +72,7 @@ namespace Tournament.Api.Controllers
                 await _uow.CompleteAsync();
             }
 
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
