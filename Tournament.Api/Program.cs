@@ -29,7 +29,7 @@ namespace Tournament.Api
                 .AddXmlDataContractSerializerFormatters();
 
             // Configure logging
-            builder.Logging.ClearProviders(); // Optional: Clears default providers
+            //builder.Logging.ClearProviders(); // Optional: Clears default providers
             builder.Logging.AddConsole(); // Add Console logging
             builder.Logging.AddDebug(); // Add Debug logging
 
