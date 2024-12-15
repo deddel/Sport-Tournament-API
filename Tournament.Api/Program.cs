@@ -25,8 +25,6 @@ namespace Tournament.Api
                 })
                 .AddXmlDataContractSerializerFormatters();
 
-            builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
-            builder.Services.AddScoped<IGameRepository, GameRepository>();
             builder.Services.AddProblemDetails();
 
             // Configure logging
@@ -39,7 +37,8 @@ namespace Tournament.Api
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(TournamentMappings));
 
-            //
+            builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
+            builder.Services.AddScoped<IGameRepository, GameRepository>();
             builder.Services.AddScoped<IUoW, UoW>();
             builder.Services.AddScoped<IServiceManager, ServiceManager>();
             builder.Services.ConfigureCors();

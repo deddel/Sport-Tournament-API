@@ -138,10 +138,6 @@ namespace Tournament.Presentation.Controllers
             {
                 return NotFound("Tournament does not exist");
             }
-            catch (InvalidOperationException)
-            {
-                return UnprocessableEntity(ModelState); 
-            }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
