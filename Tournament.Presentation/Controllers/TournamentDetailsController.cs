@@ -11,6 +11,7 @@ using Tournament.Core.Repositories;
 using AutoMapper;
 using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
+using Service.Contracts;
 
 namespace Tournament.Presentation.Controllers
 {
@@ -18,144 +19,148 @@ namespace Tournament.Presentation.Controllers
     [ApiController]
     public class TournamentDetailsController : ControllerBase
     {
-        //private readonly TournamentApiContext _context;
-        private readonly IUoW _uow;
-        private readonly IMapper _mapper;
+        private readonly IServiceManager _serviceManager;
 
-        public TournamentDetailsController(IMapper mapper, IUoW uow)
+        //private readonly TournamentApiContext _context;
+        //private readonly IUoW _uow;
+        //private readonly IMapper _mapper;
+
+        public TournamentDetailsController(IServiceManager serviceManager)
         {
-            _uow = uow;
-            _mapper = mapper;
+            _serviceManager = serviceManager;
+            //_uow = uow;
+            //_mapper = mapper;
         }
 
         // GET: api/tournamentdetails
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TournamentDto>>> GetTournament(bool includeGames)
         {
-            var tournaments = await _uow.TournamentRepository.GetAllAsync(includeGames);
-            var tournamentDtos = _mapper.Map<IEnumerable<TournamentDto>>(tournaments);
+            var tournamentDtos = await _serviceManager.TournamentService.GetTournamentsAsync(includeGames);
+            //var tournaments = await _uow.TournamentRepository.GetAllAsync(includeGames);
+            //var tournamentDtos = _mapper.Map<IEnumerable<TournamentDto>>(tournaments);
 
             return Ok(tournamentDtos);
         }
 
-        // GET: api/tournamentdetails/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TournamentDto>> GetTournament(int id)
-        {
-            var tournament = await _uow.TournamentRepository.GetAsync(id);
+        //// GET: api/tournamentdetails/5
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<TournamentDto>> GetTournament(int id)
+        //{
+        //    var tournament = await _uow.TournamentRepository.GetAsync(id);
 
-            if (tournament == null)
-            {
-                return NotFound("The tournament does not exist");
-            }
+        //    if (tournament == null)
+        //    {
+        //        return NotFound("The tournament does not exist");
+        //    }
 
-            var tournamentDto = _mapper.Map<TournamentDto>(tournament);
+        //    var tournamentDto = _mapper.Map<TournamentDto>(tournament);
 
-            return Ok(tournamentDto);
-        }
+        //    return Ok(tournamentDto);
+        //}
 
-        // PUT: api/tournamentdetails/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTournament(int id, TournamentUpdateDto dto)
-        {
-            if (id != dto.Id) return BadRequest();
+        //// PUT: api/tournamentdetails/5
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> PutTournament(int id, TournamentUpdateDto dto)
+        //{
+        //    if (id != dto.Id) return BadRequest();
 
-            var existingTournament = await _uow.TournamentRepository.GetAsync(id);
+        //    var existingTournament = await _uow.TournamentRepository.GetAsync(id);
 
-            if (existingTournament == null) return NotFound("The tournament does not exist");
+        //    if (existingTournament == null) return NotFound("The tournament does not exist");
 
-            _mapper.Map(dto, existingTournament);
+        //    _mapper.Map(dto, existingTournament);
 
-            try
-            {
-                await _uow.CompleteAsync();
-            }
+        //    try
+        //    {
+        //        await _uow.CompleteAsync();
+        //    }
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
 
-            return Ok(_mapper.Map<TournamentDto>(existingTournament));
+        //    return Ok(_mapper.Map<TournamentDto>(existingTournament));
 
-        }
+        //}
 
-        // POST: api/tournamentdetails
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<IActionResult> PostTournament(TournamentCreateDto dto)
-        {
-            var tournament = _mapper.Map<TournamentDetails>(dto);
-            _uow.TournamentRepository.Add(tournament);
+        //// POST: api/tournamentdetails
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPost]
+        //public async Task<IActionResult> PostTournament(TournamentCreateDto dto)
+        //{
+        //    var tournament = _mapper.Map<TournamentDetails>(dto);
+        //    _uow.TournamentRepository.Add(tournament);
 
-            try
-            {
-                await _uow.CompleteAsync();
-            }
+        //    try
+        //    {
+        //        await _uow.CompleteAsync();
+        //    }
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
 
-            var createdTournament = _mapper.Map<TournamentDto>(tournament);
-            return CreatedAtAction(nameof(GetTournament), new { id = createdTournament.Id }, createdTournament);
-        }
+        //    var createdTournament = _mapper.Map<TournamentDto>(tournament);
+        //    return CreatedAtAction(nameof(GetTournament), new { id = createdTournament.Id }, createdTournament);
+        //}
 
-        // DELETE: api/tournamentdetails/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTournament(int id)
-        {
-            var tournament = await _uow.TournamentRepository.GetAsync(id);
-            if (tournament == null) return NotFound();
+        //// DELETE: api/tournamentdetails/5
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteTournament(int id)
+        //{
+        //    var tournament = await _uow.TournamentRepository.GetAsync(id);
+        //    if (tournament == null) return NotFound();
 
-            _uow.TournamentRepository.Remove(tournament);
-            try
-            {
-                await _uow.CompleteAsync();
-            }
+        //    _uow.TournamentRepository.Remove(tournament);
+        //    try
+        //    {
+        //        await _uow.CompleteAsync();
+        //    }
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
 
-            return NoContent();
-        }
+        //    return NoContent();
+        //}
 
-        // PATCH: api/tournamentdetails/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> PatchTournament(int id, JsonPatchDocument<TournamentUpdateDto> patchDocument)
-        {
-            if (patchDocument == null) return BadRequest("No patch document");
+        //// PATCH: api/tournamentdetails/5
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPatch("{id}")]
+        //public async Task<IActionResult> PatchTournament(int id, JsonPatchDocument<TournamentUpdateDto> patchDocument)
+        //{
+        //    if (patchDocument == null) return BadRequest("No patch document");
 
-            var tournamentToPatch = await _uow.TournamentRepository.GetAsync(id);
+        //    var tournamentToPatch = await _uow.TournamentRepository.GetAsync(id);
 
-            if (tournamentToPatch == null) return NotFound("Tournament does not exist");
+        //    if (tournamentToPatch == null) return NotFound("Tournament does not exist");
 
-            var dto = _mapper.Map<TournamentUpdateDto>(tournamentToPatch);
+        //    var dto = _mapper.Map<TournamentUpdateDto>(tournamentToPatch);
 
-            patchDocument.ApplyTo(dto, ModelState);
+        //    patchDocument.ApplyTo(dto, ModelState);
 
-            //Validate ModelState for dto after patch
-            TryValidateModel(dto);
-            if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
+        //    //Validate ModelState for dto after patch
+        //    TryValidateModel(dto);
+        //    if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
 
-            _mapper.Map(dto, tournamentToPatch);
+        //    _mapper.Map(dto, tournamentToPatch);
 
-            try
-            {
-                await _uow.CompleteAsync();
-            }
+        //    try
+        //    {
+        //        await _uow.CompleteAsync();
+        //    }
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
 
-            return Ok(_mapper.Map<TournamentDto>(tournamentToPatch));
-        }
+        //    return Ok(_mapper.Map<TournamentDto>(tournamentToPatch));
+        //}
     }
 }

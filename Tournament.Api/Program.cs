@@ -1,10 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Service.Contracts;
 using Tournament.Api.Extensions;
 using Tournament.Core.Repositories;
 using Tournament.Data.Data;
 using Tournament.Data.Repositories;
 using Tournament.Presentation;
+using Tournament.Services;
 
 namespace Tournament.Api
 {
@@ -13,20 +15,19 @@ namespace Tournament.Api
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            // Add services to the container.
             builder.Services.AddDbContext<TournamentApiContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("TournamentApiContext") ?? throw new InvalidOperationException("Connection string 'TournamentApiContext' not found.")));
-
-            // Add services to the container.
-            builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
-            builder.Services.AddScoped<IGameRepository, GameRepository>();
-            builder.Services.AddScoped<IUoW, UoW>();
-            builder.Services.AddProblemDetails();
             builder.Services.AddControllers(opt => opt.ReturnHttpNotAcceptable = true)
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
                 })
                 .AddXmlDataContractSerializerFormatters();
+
+            builder.Services.AddScoped<ITournamentRepository, TournamentRepository>();
+            builder.Services.AddScoped<IGameRepository, GameRepository>();
+            builder.Services.AddProblemDetails();
 
             // Configure logging
             //builder.Logging.ClearProviders(); // Optional: Clears default providers
@@ -37,6 +38,11 @@ namespace Tournament.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
             builder.Services.AddAutoMapper(typeof(TournamentMappings));
+
+            //
+            builder.Services.AddScoped<IUoW, UoW>();
+            builder.Services.AddScoped<IServiceManager, ServiceManager>();
+            builder.Services.ConfigureCors();
 
             var app = builder.Build();
 
@@ -50,6 +56,7 @@ namespace Tournament.Api
             }
 
             app.UseHttpsRedirection();
+            app.UseCors("AllowAll");
 
             app.UseAuthorization();
 

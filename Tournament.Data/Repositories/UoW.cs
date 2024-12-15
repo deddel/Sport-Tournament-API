@@ -14,16 +14,16 @@ namespace Tournament.Data.Repositories
         private readonly ITournamentRepository _tournamentRepository;
         private readonly IGameRepository _gameRepository;
 
+        public ITournamentRepository TournamentRepository => _tournamentRepository;
+
+        public IGameRepository GameRepository => _gameRepository;
+
         public UoW(TournamentApiContext context, ITournamentRepository tournamentRepository, IGameRepository gameRepository) 
         {
             _context = context;
             _tournamentRepository = tournamentRepository;
             _gameRepository = gameRepository;
         }
-
-        public ITournamentRepository TournamentRepository => _tournamentRepository;
-
-        public IGameRepository GameRepository => _gameRepository;
 
         public async Task CompleteAsync()
         {
