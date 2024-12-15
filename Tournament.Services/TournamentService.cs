@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.JsonPatch;
 using Service.Contracts;
 using System;
 using System.Collections.Generic;
@@ -21,9 +22,9 @@ namespace Tournament.Services
             _uow = uow;
             _mapper = mapper; 
         }
-        public async Task<IEnumerable<TournamentDto>> GetTournamentsAsync(bool includeEmployees)
+        public async Task<IEnumerable<TournamentDto>> GetTournamentsAsync(bool includeGames)
         {
-            return _mapper.Map<IEnumerable<TournamentDto>>(await _uow.TournamentRepository.GetAllAsync(includeEmployees));
+            return _mapper.Map<IEnumerable<TournamentDto>>(await _uow.TournamentRepository.GetAllAsync(includeGames));
         }
 
         public async Task<TournamentDto> GetTournamentAsync(int id)
@@ -32,12 +33,65 @@ namespace Tournament.Services
 
             if (tournament == null)
             {
-                //ToDo: Fix later
+                throw new KeyNotFoundException("Tournament not found");
             }
 
             return _mapper.Map<TournamentDto>(tournament);
 
         }
 
+        public async Task<TournamentDto> PutTournamentAsync(int id, TournamentUpdateDto dto)
+        {
+            if (id != dto.Id)
+            {
+                throw new ArgumentException("Id mismatch");
+            }
+
+            var existingTournament = await _uow.TournamentRepository.GetAsync(id);
+            if (existingTournament == null) throw new KeyNotFoundException($"Tournament with ID {id} not found");
+
+
+            _mapper.Map(dto, existingTournament);
+
+            await _uow.CompleteAsync();
+
+            return _mapper.Map<TournamentDto>(existingTournament);
+        }
+
+        public async Task<TournamentDto> PostTournamentAsync(TournamentCreateDto dto)
+        {
+            var tournament = _mapper.Map<TournamentDetails>(dto);
+
+            _uow.TournamentRepository.Add(tournament);
+
+            await _uow.CompleteAsync();
+
+            return _mapper.Map<TournamentDto>(tournament);
+        }
+
+        public async Task DeleteTournamentAsync(int id)
+        {
+            var tournament = await _uow.TournamentRepository.GetAsync(id);
+            if (tournament == null) throw new KeyNotFoundException("Tournament not found");
+
+            _uow.TournamentRepository.Remove(tournament);
+
+            await _uow.CompleteAsync();
+        }
+
+        public async Task<TournamentDto> PatchTournamentAsync(int id, JsonPatchDocument<TournamentUpdateDto> patchDocument)
+        {
+            var tournamentToPatch = await _uow.TournamentRepository.GetAsync(id);
+            if (tournamentToPatch == null) throw new KeyNotFoundException("Tournament does not exist");
+
+            var dto = _mapper.Map<TournamentUpdateDto>(tournamentToPatch);
+
+            patchDocument.ApplyTo(dto);
+
+            _mapper.Map(dto, tournamentToPatch);
+            await _uow.CompleteAsync();
+
+            return _mapper.Map<TournamentDto>(tournamentToPatch);
+        }
     }
 }

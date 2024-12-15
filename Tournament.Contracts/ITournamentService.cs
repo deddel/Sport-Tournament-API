@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,5 +12,10 @@ namespace Service.Contracts
     {
         Task<IEnumerable<TournamentDto>> GetTournamentsAsync(bool includeEmployees);
         Task<TournamentDto> GetTournamentAsync(int id);
+
+        Task<TournamentDto> PutTournamentAsync(int id, TournamentUpdateDto dto);
+        Task<TournamentDto> PostTournamentAsync(TournamentCreateDto dto);
+        Task DeleteTournamentAsync(int id);
+        Task<TournamentDto> PatchTournamentAsync(int id, JsonPatchDocument<TournamentUpdateDto> patchDocument);
     }
 }
