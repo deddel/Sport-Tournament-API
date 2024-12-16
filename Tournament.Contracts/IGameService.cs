@@ -11,5 +11,6 @@ namespace Service.Contracts
     {
         Task<IEnumerable<GameDto>> GetGamesAsync(int tournamentId);
         Task<GameDto> GetGameAsync(int tournamentId, int id);
+        Task<IEnumerable<GameDto>> FindGames(string searchString);
     }
 }

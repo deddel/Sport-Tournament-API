@@ -23,11 +23,38 @@ namespace Tournament.Services
         }
         public async Task<IEnumerable<GameDto>> GetGamesAsync(int tournamentId)
         {
-            return _mapper.Map<IEnumerable<GameDto>>(await _uow.GameRepository.GetAllAsync(tournamentId));
+            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
+
+            if (!tournamentExist) throw new KeyNotFoundException($"Tournament with ID {tournamentId} not found");
+
+            var games = await _uow.GameRepository.GetAllAsync(tournamentId);
+            return _mapper.Map<IEnumerable<GameDto>>(games);
         }
         public async Task<GameDto> GetGameAsync(int tournamentId, int id)
         {
-            return _mapper.Map<GameDto>(await _uow.GameRepository.GetAsync(tournamentId, id));
+            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
+
+            if (!tournamentExist) throw new KeyNotFoundException($"Tournament with ID {tournamentId} not found");
+
+            var game = await _uow.GameRepository.GetAsync(tournamentId, id);
+
+            if (game == null)
+            {
+                throw new KeyNotFoundException($"Game with id {id} not found");
+            }
+
+            return _mapper.Map<GameDto>(game);
+        }
+
+        public async Task<IEnumerable<GameDto>> FindGames(string searchString)
+        {
+            var games = await _uow.GameRepository.FindGamesByTitle(searchString);
+
+            if (games.Count() == 0)
+            {
+                throw new KeyNotFoundException($"No Games found with the title: {searchString}");
+            }
+            return _mapper.Map<IEnumerable<GameDto>>(games);
         }
 
     }

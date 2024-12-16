@@ -12,6 +12,7 @@ using AutoMapper;
 using Tournament.Core.Dto;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.Extensions.Logging;
+using Service.Contracts;
 
 namespace Tournament.Presentation.Controllers
 {
@@ -19,29 +20,31 @@ namespace Tournament.Presentation.Controllers
     [ApiController]
     public class GamesController : ControllerBase
     {
-        private readonly ILogger<GamesController> _logger;
-        private readonly IMapper _mapper;
-        private readonly IUoW _uow;
+        
+        private readonly IServiceManager _serviceManager;
 
-        public GamesController(ILogger<GamesController> logger, IMapper mapper, IUoW uow)
+        public GamesController(IServiceManager serviceManager)
         {
-            _logger = logger;
-            _mapper = mapper;
-            _uow = uow;
+            _serviceManager = serviceManager;
         }
 
         // GET: api/tournamentdetails/5/games
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GameDto>>> GetGames(int tournamentId)
         {
-            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
-
-            if (!tournamentExist) return NotFound("The tournament does not exist");
-
-            var games = await _uow.GameRepository.GetAllAsync(tournamentId);
-            var gameDtos = _mapper.Map<IEnumerable<GameDto>>(games);
-
-            return Ok(gameDtos);
+            try
+            {
+                var gameDtos = await _serviceManager.GameService.GetGamesAsync(tournamentId);
+                return Ok(gameDtos);
+            }
+            catch (KeyNotFoundException ex) 
+            { 
+                return NotFound(ex.Message); 
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         // GET: api/tournamentdetails/5/games/10
@@ -58,21 +61,20 @@ namespace Tournament.Presentation.Controllers
             //    _logger.LogCritical(ex, "Error");
             //    return StatusCode(500);
             //}
-
-            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
-
-            if (!tournamentExist) return NotFound("The tournament does not exist");
-
-            var game = await _uow.GameRepository.GetAsync(tournamentId, id);
-
-            if (game == null)
+            try
             {
-                return NotFound();
-            }
-
-            var gameDto = _mapper.Map<GameDto>(game);
-
+            var gameDto = await _serviceManager.GameService.GetGameAsync(tournamentId, id);
             return Ok(gameDto);
+
+            }
+            catch (KeyNotFoundException ex) 
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         // GET: api/tournamentdetails/{tournamentId}/games/search
@@ -84,162 +86,172 @@ namespace Tournament.Presentation.Controllers
                 // Return an empty list if the search string is empty
                 return Ok(Enumerable.Empty<GameDto>());
             }
-
-            var games = await _uow.GameRepository
-                .FindGamesByTitle(searchString);
-            var gameDtos = _mapper.Map<IEnumerable<GameDto>>(games);
-
-            return Ok(gameDtos);
-        }
-
-        // PUT: api/tournamentdetails/5/games/10
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutGame(int tournamentId, int id, GameUpdateDto dto)
-        {
-            // Check if model is valid
-            if (!ModelState.IsValid)
-            {
-                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                return BadRequest($"Model is invalid: {errors}");
-            }
-
-            // Check if the game object is being properly bound
-            if (dto == null)
-            {
-                return BadRequest("Game object is null.");
-            }
-
-            //Check that game ID match
-            if (id != dto.Id) return BadRequest();
-
-            //Check if the tournament exist
-            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
-            if (!tournamentExist) return NotFound("The tournament does not exist");
-
-            //Check if the game exists
-            var gameExist = await _uow.GameRepository.AnyAsync(tournamentId, id);
-            if (!gameExist) return NotFound("The game does not exist");
-
-            var existingGame = await _uow.GameRepository.GetAsync(tournamentId, id);
-
-            _mapper.Map(dto, existingGame);
-
             try
             {
-                await _uow.CompleteAsync();
+                var gameDtos = await _serviceManager.GameService.FindGames(searchString);
+                return Ok(gameDtos);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
 
-            return Ok(_mapper.Map<GameDto>(existingGame));
+
+
         }
 
-        // POST: api/tournamentdetails/5/games
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Game>> PostGame(int tournamentId, GameCreateDto dto)
-        {
+        //// PUT: api/tournamentdetails/5/games/10
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPut("{id}")]
+        //public async Task<IActionResult> PutGame(int tournamentId, int id, GameUpdateDto dto)
+        //{
+        //    // Check if model is valid
+        //    if (!ModelState.IsValid)
+        //    {
+        //        var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+        //        return BadRequest($"Model is invalid: {errors}");
+        //    }
 
-            // Check if model is valid
-            if (!ModelState.IsValid)
-            {
-                var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-                return BadRequest($"Model is invalid: {errors}");
-            }
+        //    // Check if the game object is being properly bound
+        //    if (dto == null)
+        //    {
+        //        return BadRequest("Game object is null.");
+        //    }
 
-            // Check if the game object is being properly bound
-            if (dto == null)
-            {
-                return BadRequest("Game object is null.");
-            }
+        //    //Check that game ID match
+        //    if (id != dto.Id) return BadRequest();
 
-            //Check if the tournament exist
-            var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
-            if (!tournamentExist) return NotFound("Tournament does not exist");
+        //    //Check if the tournament exist
+        //    var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
+        //    if (!tournamentExist) return NotFound("The tournament does not exist");
 
-            //Map the GameUpdateDto object to a Game object
-            var createdGame = _mapper.Map<Game>(dto);
+        //    //Check if the game exists
+        //    var gameExist = await _uow.GameRepository.AnyAsync(tournamentId, id);
+        //    if (!gameExist) return NotFound("The game does not exist");
 
-            //Associate the game with the tournament
-            createdGame.TournamentDetailsId = tournamentId;
+        //    var existingGame = await _uow.GameRepository.GetAsync(tournamentId, id);
 
-            //Add the game to the database
-            _uow.GameRepository.Add(createdGame);
-            try
-            {
-                await _uow.CompleteAsync();
-            }
+        //    _mapper.Map(dto, existingGame);
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+        //    try
+        //    {
+        //        await _uow.CompleteAsync();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
 
-            return CreatedAtAction(nameof(GetGame), new { tournamentId, id = createdGame.Id }, createdGame);
-        }
+        //    return Ok(_mapper.Map<GameDto>(existingGame));
+        //}
 
-        // DELETE: api/tournamentdetails/5/games/10
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGame(int tournamentId, int id)
-        {
-            //Check if the tournament exists
-            var tournamentExists = await _uow.TournamentRepository.AnyAsync(tournamentId);
-            if (!tournamentExists) return NotFound();
+        //// POST: api/tournamentdetails/5/games
+        //// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        //[HttpPost]
+        //public async Task<ActionResult<Game>> PostGame(int tournamentId, GameCreateDto dto)
+        //{
 
-            //Check if the game exists
-            var gameExist = await _uow.GameRepository.AnyAsync(tournamentId, id);
-            if (!gameExist) return NotFound("The game does not exist");
+        //    // Check if model is valid
+        //    if (!ModelState.IsValid)
+        //    {
+        //        var errors = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+        //        return BadRequest($"Model is invalid: {errors}");
+        //    }
 
-            var game = await _uow.GameRepository.GetAsync(tournamentId, id);
-            if (game == null) return NotFound();
+        //    // Check if the game object is being properly bound
+        //    if (dto == null)
+        //    {
+        //        return BadRequest("Game object is null.");
+        //    }
 
-            _uow.GameRepository.Remove(game);
-            try
-            {
-                await _uow.CompleteAsync();
-            }
+        //    //Check if the tournament exist
+        //    var tournamentExist = await _uow.TournamentRepository.AnyAsync(tournamentId);
+        //    if (!tournamentExist) return NotFound("Tournament does not exist");
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+        //    //Map the GameUpdateDto object to a Game object
+        //    var createdGame = _mapper.Map<Game>(dto);
 
-            return NoContent();
-        }
+        //    //Associate the game with the tournament
+        //    createdGame.TournamentDetailsId = tournamentId;
 
-        // PATCH: api/tournamentdetails/5/games/10
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> PatchGame(int tournamentId, int id, JsonPatchDocument<GameUpdateDto> patchDocument)
-        {
-            if (patchDocument == null) return BadRequest("No patch document");
+        //    //Add the game to the database
+        //    _uow.GameRepository.Add(createdGame);
+        //    try
+        //    {
+        //        await _uow.CompleteAsync();
+        //    }
 
-            var gameToPatch = await _uow.GameRepository.GetAsync(tournamentId, id);
-            if (gameToPatch == null) return NotFound("Game does not exist");
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
 
-            var dto = _mapper.Map<GameUpdateDto>(gameToPatch);
+        //    return CreatedAtAction(nameof(GetGame), new { tournamentId, id = createdGame.Id }, createdGame);
+        //}
 
-            patchDocument.ApplyTo(dto, ModelState);
+        //// DELETE: api/tournamentdetails/5/games/10
+        //[HttpDelete("{id}")]
+        //public async Task<IActionResult> DeleteGame(int tournamentId, int id)
+        //{
+        //    //Check if the tournament exists
+        //    var tournamentExists = await _uow.TournamentRepository.AnyAsync(tournamentId);
+        //    if (!tournamentExists) return NotFound();
 
-            //Validate ModelState for dto after patch
-            TryValidateModel(dto);
-            if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
+        //    //Check if the game exists
+        //    var gameExist = await _uow.GameRepository.AnyAsync(tournamentId, id);
+        //    if (!gameExist) return NotFound("The game does not exist");
 
-            _mapper.Map(dto, gameToPatch);
+        //    var game = await _uow.GameRepository.GetAsync(tournamentId, id);
+        //    if (game == null) return NotFound();
 
-            try
-            {
-                await _uow.CompleteAsync();
-            }
+        //    _uow.GameRepository.Remove(game);
+        //    try
+        //    {
+        //        await _uow.CompleteAsync();
+        //    }
 
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
 
-            return Ok(_mapper.Map<GameDto>(gameToPatch));
-        }
+        //    return NoContent();
+        //}
+
+        //// PATCH: api/tournamentdetails/5/games/10
+        //[HttpPatch("{id}")]
+        //public async Task<IActionResult> PatchGame(int tournamentId, int id, JsonPatchDocument<GameUpdateDto> patchDocument)
+        //{
+        //    if (patchDocument == null) return BadRequest("No patch document");
+
+        //    var gameToPatch = await _uow.GameRepository.GetAsync(tournamentId, id);
+        //    if (gameToPatch == null) return NotFound("Game does not exist");
+
+        //    var dto = _mapper.Map<GameUpdateDto>(gameToPatch);
+
+        //    patchDocument.ApplyTo(dto, ModelState);
+
+        //    //Validate ModelState for dto after patch
+        //    TryValidateModel(dto);
+        //    if (!ModelState.IsValid) return UnprocessableEntity(ModelState);
+
+        //    _mapper.Map(dto, gameToPatch);
+
+        //    try
+        //    {
+        //        await _uow.CompleteAsync();
+        //    }
+
+        //    catch (Exception ex)
+        //    {
+        //        return StatusCode(500, $"Internal server error: {ex.Message}");
+        //    }
+
+        //    return Ok(_mapper.Map<GameDto>(gameToPatch));
+        //}
     }
 }
